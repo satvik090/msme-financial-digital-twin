@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: msme_twin
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d msme_twin"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  ml-service:
+    build: ./ml-service
+  app:
+    build: .
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/msme_twin
+      ML_SERVICE_URL: http://ml-service:8000
+      CORS_ORIGIN: http://localhost:8080
+      DEMO_MODE: "true"
+      EVENT_WORKER_ENABLED: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ml-service:
+        condition: service_started
+    ports: ["8080:3000"]
+volumes:
+  postgres_data:

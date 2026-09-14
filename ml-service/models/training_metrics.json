@@ -1,0 +1,10 @@
+{
+  "forecastMae": 16159.544361843029,
+  "riskAuc": 0.9974234712295141,
+  "riskAccuracy": 0.9696969696969697,
+  "trainingRows": {
+    "forecast": 29700,
+    "anomaly": 32400,
+    "risk": 3960
+  }
+}
