@@ -1,4 +1,16 @@
 services:
+  - type: web
+    name: msme-financial-twin-frontend
+    env: static
+    buildCommand: cd frontend && npm install && npm run build -- --configuration production
+    staticPublishPath: ./frontend/dist/dashboard/browser
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+    envVars:
+      - key: API_URL
+        sync: false
   - type: pserv
     name: msme-twin-ml
     runtime: docker
