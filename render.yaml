@@ -33,3 +33,16 @@ services:
 databases:
   - name: msme-twin-db
     plan: free
+  - type: web
+    name: msme-frontend
+    env: static
+    buildCommand: cd frontend && npm install && ng build --configuration production
+    staticPublishPath: ./frontend/dist/msme-digital-twin/browser
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      # Ensure your frontend environment.prod.ts has the correct API URL
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
