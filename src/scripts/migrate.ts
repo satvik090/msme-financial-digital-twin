@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { pool } from '../db/pool.js';
 
 async function main() {
-  const schemaPath = join(process.cwd(), 'src', 'db', 'schema.sql');
+  const schemaPath = join(process.cwd(), 'dist', 'db', 'schema.sql');
   const sql = await readFile(schemaPath, 'utf8');
 
   await pool.query(sql);
