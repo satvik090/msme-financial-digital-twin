@@ -20,7 +20,7 @@ services:
     dockerContext: .
     dockerfilePath: ./Dockerfile
     plan: free
-    healthCheckPath: /health/live
+    healthCheckPath: /api/v1/health/live
     envVars:
       - key: PORT
         value: "10000"
