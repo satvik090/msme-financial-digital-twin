@@ -1,38 +1,57 @@
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import { pinoHttp } from 'pino-http';
-import { errorHandler } from './middleware/errors.js';
-import { businessRouter } from './routes/business.routes.js';
-import { healthRouter } from './routes/health.routes.js';
-import { env } from './config/env.js';
-import { logger } from './config/logger.js';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
-export const app = express();
+@Injectable({
+  providedIn: 'root',
+})
+export class AppService {
+  private readonly apiUrl =
+    'https://msme-financial-digital-twin.onrender.com/api/v1';
 
-app.use(helmet());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+  constructor(private readonly http: HttpClient) {}
 
-app.use(cors({
-  origin: env.CORS_ORIGIN,
-  credentials: true,
-}));
+  getBusinesses(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/businesses`);
+  }
 
-app.use(pinoHttp({
-  logger,
-  customLogLevel: function (_req, res, err) {
-    if (res.statusCode >= 400 && res.statusCode < 500) return 'warn';
-    if (res.statusCode >= 500 || err) return 'error';
-    return 'info';
-  },
-}));
+  getBusinessIntelligence(
+    businessId: string,
+    days = 90,
+    bucket = 'day'
+  ): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/businesses/${businessId}/intelligence`,
+      {
+        params: {
+          days,
+          bucket,
+        },
+      }
+    );
+  }
 
-app.use('/api/v1/businesses', businessRouter);
-app.use('/api/v1/health', healthRouter);
+  getMlIntelligence(businessId: string): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/businesses/${businessId}/ml-intelligence`
+    );
+  }
 
-app.get('/health', (_req, res) => {
-  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
-});
+  getEvents(businessId: string): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/businesses/${businessId}/events`
+    );
+  }
 
-app.use(errorHandler);
+  getTwin(businessId: string): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/businesses/${businessId}/twin`
+    );
+  }
+
+  getTwinHistory(businessId: string): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/businesses/${businessId}/twin/history`
+    );
+  }
+}
