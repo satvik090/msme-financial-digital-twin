@@ -18,6 +18,11 @@
             "styles": [
               "src/styles.css"
             ]
+          },
+          "configurations": {
+            "production": {
+              "outputHashing": "all"
+            }
           }
         },
         "serve": {
