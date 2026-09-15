@@ -34,7 +34,7 @@ const stateHistorySchema = z.object({ body: z.object({}), params: z.object({ id:
 
 export const businessRouter = Router();
 businessRouter.use(authenticate);
-businessRouter.get('/', validate(listSchema), async (req, res, next) => { try { const { limit, offset } = req.query as unknown as { limit: number; offset: number }; res.json({ data: await businessRepository.list(limit, offset), limit, offset }); } catch (e) { next(e); } });
+businessRouter.get('/', validate(listSchema), async (req, res, next) => { try { const { limit, offset } = res.locals.validated.query as { limit: number; offset: number }; res.json({ data: await businessRepository.list(limit, offset), limit, offset }); } catch (e) { next(e); } });
 businessRouter.post('/', requireRole('admin'), validate(createSchema), async (req, res, next) => { try { res.status(201).json({ data: await businessRepository.create(req.body) }); } catch (e) { next(e); } });
 businessRouter.post('/:id/events', requireRole('analyst','admin'), validate(eventSchema), async (req, res, next) => {
   try {
@@ -53,21 +53,21 @@ businessRouter.get('/:id/twin', validate(idSchema), async (req, res, next) => {
 businessRouter.get('/:id/intelligence', validate(intelligenceSchema), async (req, res, next) => {
   try {
     const { id } = req.params as { id: string };
-    const { days, bucket } = req.query as unknown as { days: number; bucket: 'day' | 'week' | 'month' };
+    const { days, bucket } = res.locals.validated.query as { days: number; bucket: 'day' | 'week' | 'month' };
     return res.json({ data: await financialIntelligenceService.getDashboard(id, { days, bucket }) });
   } catch (e) { return next(e); }
 });
 businessRouter.get('/:id/ml-intelligence', validate(mlIntelligenceSchema), async (req, res, next) => {
   try {
     const { id } = req.params as { id: string };
-    const { days, horizonDays } = req.query as unknown as { days: number; horizonDays: number };
+    const { days, horizonDays } = res.locals.validated.query as { days: number; horizonDays: number };
     return res.json({ data: await mlIntelligenceService.predict(id, { days, horizonDays }) });
   } catch (e) { return next(e); }
 });
 businessRouter.get('/:id/events', validate(eventHistorySchema), async (req, res, next) => {
   try {
     const { id } = req.params as { id: string };
-    const query = req.query as unknown as { from?: string; to?: string; limit: number; offset: number };
+    const query = res.locals.validated.query as { from?: string; to?: string; limit: number; offset: number };
     const events = await financialIntelligenceService.listEvents(id, { from: query.from ? new Date(query.from) : undefined, to: query.to ? new Date(query.to) : undefined, limit: query.limit, offset: query.offset });
     return res.json({ data: events, limit: query.limit, offset: query.offset });
   } catch (e) { return next(e); }
@@ -75,7 +75,7 @@ businessRouter.get('/:id/events', validate(eventHistorySchema), async (req, res,
 businessRouter.get('/:id/twin/history', validate(stateHistorySchema), async (req, res, next) => {
   try {
     const { id } = req.params as { id: string };
-    const { limit } = req.query as unknown as { limit: number };
+    const { limit } = res.locals.validated.query as { limit: number };
     return res.json({ data: await financialIntelligenceService.listStateHistory(id, limit), limit });
   } catch (e) { return next(e); }
 });
