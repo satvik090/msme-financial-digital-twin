@@ -1,5 +1,4 @@
 services:
-  # Angular frontend
   - type: web
     name: msme-financial-twin-frontend
     runtime: static
@@ -10,7 +9,6 @@ services:
         name: X-Frame-Options
         value: SAMEORIGIN
 
-  # FastAPI ML service
   - type: web
     name: msme-twin-ml
     runtime: docker
@@ -18,7 +16,6 @@ services:
     dockerfilePath: ./ml-service/Dockerfile
     plan: free
 
-  # Node.js backend API
   - type: web
     name: msme-financial-digital-twin
     runtime: docker
@@ -29,15 +26,12 @@ services:
     envVars:
       - key: PORT
         value: "10000"
-
       - key: ML_SERVICE_URL
         fromService:
           name: msme-twin-ml
           type: web
           envVarKey: RENDER_EXTERNAL_URL
-
       - key: DEMO_MODE
         value: "true"
-
       - key: EVENT_WORKER_ENABLED
         value: "true"
