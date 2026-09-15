@@ -1,7 +1,8 @@
 services:
+  # Angular frontend
   - type: web
     name: msme-financial-twin-frontend
-    env: static
+    runtime: static
     buildCommand: cd frontend && npm install && npm run build -- --configuration production
     staticPublishPath: ./frontend/dist/dashboard/browser
     headers:
@@ -9,6 +10,7 @@ services:
         name: X-Frame-Options
         value: SAMEORIGIN
 
+  # FastAPI ML service
   - type: web
     name: msme-twin-ml
     runtime: docker
@@ -16,6 +18,7 @@ services:
     dockerfilePath: ./ml-service/Dockerfile
     plan: free
 
+  # Node.js backend API
   - type: web
     name: msme-financial-digital-twin
     runtime: docker
@@ -27,14 +30,11 @@ services:
       - key: PORT
         value: "10000"
 
-      - key: DATABASE_URL
-        sync: false
-
       - key: ML_SERVICE_URL
         fromService:
           name: msme-twin-ml
           type: web
-          property: host
+          envVarKey: RENDER_EXTERNAL_URL
 
       - key: DEMO_MODE
         value: "true"
