@@ -28,18 +28,39 @@ function toPredictionEvent(event: FinancialEvent): MLPredictionEvent {
 }
 
 export const mlIntelligenceService = {
-  async predict(businessId: string, options: MLIntelligenceOptions): Promise<FinancialMLPrediction> {
-    if (!await businessRepository.findById(businessId)) throw new HttpError(404, 'Business not found');
+  async predict(
+    businessId: string,
+    options: MLIntelligenceOptions,
+  ): Promise<FinancialMLPrediction> {
+    if (!await businessRepository.findById(businessId)) {
+      throw new HttpError(404, 'Business not found');
+    }
+
     const [state, events] = await Promise.all([
       financialEventRepository.findState(businessId),
-      financialEventRepository.listProcessed(businessId, { from: fromDaysAgo(options.days), limit: MAX_ML_EVENTS, offset: 0 }),
+      financialEventRepository.listProcessed(businessId, {
+        from: fromDaysAgo(options.days),
+        limit: MAX_ML_EVENTS,
+        offset: 0,
+      }),
     ]);
+
+    const validEvents = events.filter(
+      (event) => Number.isFinite(event.amount) && event.amount > 0,
+    );
+
     return mlServiceClient.predict({
       businessId,
       generatedAt: new Date().toISOString(),
       horizonDays: options.horizonDays,
-      currentState: state ? { status: state.status, asOf: state.asOf, health: state.health } : null,
-      events: events.map(toPredictionEvent),
+      currentState: state
+        ? {
+            status: state.status,
+            asOf: state.asOf,
+            health: state.health,
+          }
+        : null,
+      events: validEvents.map(toPredictionEvent),
     });
   },
 };
