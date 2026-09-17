@@ -1,12 +1,36 @@
-import { ErrorRequestHandler, RequestHandler } from 'express';
-import { ZodError } from 'zod';
-import { logger } from '../config/logger.js';
+export const errorHandler: ErrorRequestHandler = (
+  error,
+  req,
+  res,
+  _next,
+) => {
+  if (error instanceof ZodError) {
+    return res.status(400).json({
+      type: 'validation_error',
+      message: 'Request validation failed',
+      details: error.flatten(),
+    });
+  }
 
-export class HttpError extends Error { constructor(public status: number, message: string, public details?: unknown) { super(message); } }
-export const notFound: RequestHandler = (_req, _res, next) => next(new HttpError(404, 'Route not found'));
-export const errorHandler: ErrorRequestHandler = (error, req, res, _next) => {
-  if (error instanceof ZodError) return res.status(400).json({ type: 'validation_error', message: 'Request validation failed', details: error.flatten() });
   const status = error instanceof HttpError ? error.status : 500;
-  if (status >= 500) logger.error({ err: error, method: req.method, path: req.path }, 'Unhandled request error');
-  return res.status(status).json({ type: status === 500 ? 'internal_error' : 'request_error', message: status === 500 && process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Internal server error') : status === 500 ? 'Internal server error' : error.message, ...(error instanceof HttpError && error.details ? { details: error.details } : {}) });
+
+  logger.error(
+    {
+      err: error,
+      method: req.method,
+      path: req.path,
+    },
+    'Request error',
+  );
+
+  return res.status(status).json({
+    type: status === 500 ? 'internal_error' : 'request_error',
+    message:
+      error instanceof Error
+        ? error.message
+        : 'Internal server error',
+    ...(error instanceof HttpError && error.details
+      ? { details: error.details }
+      : {}),
+  });
 };
