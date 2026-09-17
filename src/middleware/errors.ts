@@ -1,3 +1,20 @@
+import { ErrorRequestHandler, RequestHandler } from 'express';
+import { ZodError } from 'zod';
+import { logger } from '../config/logger.js';
+
+export class HttpError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+    public details?: unknown,
+  ) {
+    super(message);
+  }
+}
+
+export const notFound: RequestHandler = (_req, _res, next) =>
+  next(new HttpError(404, 'Route not found'));
+
 export const errorHandler: ErrorRequestHandler = (
   error,
   req,
